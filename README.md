@@ -11,6 +11,11 @@ Since the application is a small micro service and needed to be scalable and geo
   * Easy scaling
 
 However, business requirements asked for greater control over the infrastructure. This is why I decided to go for a Kubernetes deployment pipeline. This allows for a more standardized pipeline across public and private environments where we only need to select the appropriate provider in our IaC platform.
+### Application
+#### Flask
+Blah blah Python
+#### Redis
+Blah blah fast NoSQL
 
 ### Pipeline
 The plan is to create a Jenkins declarative pipeline that will orchestrate the application lifecycle management. The pipeline checks for 2 branches: dev and main. 
@@ -28,7 +33,7 @@ Webhooks | Webhooks are used to trigger jobs on the Jenkins server.
 Jenkins | A declarative pipeline controls the build of the app images but also the provisioning of the infrastructure
 Docker Registry | A private docker registry is used to store built images. A public registry could be used but the private registry lets us keep production applications private. The pipeline could be modified to push dev images or another "community" branch to a public registry.
 Terraform | Terraform is used to provision the Kubernetes clusters. My initial plan was to use Ansible to configure Kubernetes nodes and join them into clusters. In the end, the choice of Terraform was mostly to take advantage of the different providers, allowing us to create conditional deployment steps specifying the environment where to build the application's infrastructure from scratch. Effectively removing the need to initially deploy "vanilla" nodes on which apply an Ansible role. 
-Kubernetes clusters | Since we need an easily scalable, reliable and geo-distributed infrastructure to run Docker apps, Kubernetes seemed the most obvious choice. The clusters use a federated NGINX ingress controller to load-balance and route traffic 
+Kubernetes clusters | Since we need an easily scalable, reliable and geo-distributed infrastructure to run Docker apps, Kubernetes seemed the most obvious choice. The clusters rely on a federated NGINX ingress controller to load-balance and route traffic to the most appropriate nodes. The primary cluster, holding the primary Redis database service is located in eastern North-America as the first (and currently only) subset of users and operators are located in this region. Replicas are deployed to others nodes globally as the application needs to scale up and down.
 
 ## Disaster Recovery
 > What steps can be taken to mitigate downtime and data loss in the event of a database or other relevant storage failure?   
