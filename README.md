@@ -1,5 +1,5 @@
 # short-url
-Short-Url is a containerized URL shortener micro service built on Flask and Redis.
+short-url is a containerized URL shortener micro service built on Flask and Redis automatically deployed to Kubernetes clusters for auto-scaling, self-healing and globally distributed usage.
 
 ## Architecture
 Since the application is a small micro service and needed to be scalable and geo-distributed, my initial thoughts were to simply use an existing PaaS such as Google's App Engine, using a fully managed NoSQL database like Firestore. This would have had several advantages:
@@ -12,7 +12,14 @@ Since the application is a small micro service and needed to be scalable and geo
 
 However, business requirements asked for greater control over the infrastructure. This is why I decided to go for a Kubernetes deployment pipeline. This allows for a more standardized pipeline across public and private environments where we only need to select the appropriate provider in our IaC platform.
 
+### Pipeline
+The plan is to create a Jenkins declarative pipeline that will orchestrate the application lifecycle management. The pipeline checks for 2 branches: dev and main. 
  
+The dev branches triggers builds and tagging of the images for further manual deployment on a dev environment. 
+
+The main branch, on approved pull requests, builds and tags the images appropriately. 
+
+![short-url Jenkins pipeline](https://i.imgur.com/0vAqjJH.png | width=500)
 
 Please detail what underlying infrastructure and services the system will need, each of their roles, what problems they address and what tradeoffs were involved in your design decisions. You don't need to explain the detailed inner workings of the software service itself, but you should explain what if any other systems (databases, load balancers, etc.) it relies on upon and why.
 
