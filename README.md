@@ -21,37 +21,36 @@ The main branch, on approved pull requests, builds and tags the images appropria
 
 ![short-url Jenkins pipeline](https://i.imgur.com/0vAqjJH.png )
 
-First Header | Second Header
+Components / Steps | Roles
 ------------ | -------------
-Content from cell 1 | Content from cell 2
-Content in the first column | Content in the second column
+Git Repo | I use a git repo not only for the application code but also for the pipeline and infrastructure definition. It is fairly easy to safely store secrets in the repo using encryption tools like [git-secret](https://git-secret.io/) or [git-crypt](https://github.com/AGWA/git-crypt). This creates an easily maintainable environment. The repo currently has two branches: dev and main where dev is for, well, urh, app development purposes and main gets pushed to production. It would be easy to add feature branches or other specific tags into the pipeline but at the moment we do not use any.
+Webhooks | Webhooks are used to trigger jobs on the Jenkins server. 
 
-Please detail what underlying infrastructure and services the system will need, each of their roles, what problems they address and what tradeoffs were involved in your design decisions. You don't need to explain the detailed inner workings of the software service itself, but you should explain what if any other systems (databases, load balancers, etc.) it relies on upon and why.
 
 ## Disaster Recovery
-What steps can be taken to mitigate downtime and data loss in the event of a database or other relevant storage failure?   
+> What steps can be taken to mitigate downtime and data loss in the event of a database or other relevant storage failure?   
 
 ## Scalability
-How does the system change as it scales up or down?
-What does it look like at 10 users vs 1 million users?
+> How does the system change as it scales up or down?
+> What does it look like at 10 users vs 1 million users?
 
 ## High Availability and Quality of Service
-What steps should be taken to provide the majority of users with the highest quality service?
+> What steps should be taken to provide the majority of users with the highest quality service?
 
 ## Deployment Flow and Updates
-What does the deployment process look like, both for initial deployments and for updates?
+> What does the deployment process look like, both for initial deployments and for updates?
 
 ## Monitoring and Observability
-How do we measure the health and performance of the system?
+> How do we measure the health and performance of the system?
 
 ## Security
-What steps would you take to secure these systems?
+> What steps would you take to secure these systems?
 
 ## Costing
-What cost considerations would there be?
+> What cost considerations would there be?
 
 ## Support and Documentation
-What are the considerations for keeping it supported over time, including keeping support documentation up-to-date?
+> What are the considerations for keeping it supported over time, including keeping support documentation up-to-date?
 
 ## Public VS Private Deployment
-What would the deployment look like if you had to add-on a separate URL for the same application for Unity employees only that used our own ON-PREMISE data centers located in  USA, Canada, and South Korea. How would it change the components in the design, deploy, and distribution in the private/public separation for this URL shortener service?
+> What would the deployment look like if you had to add-on a separate URL for the same application for Unity employees only that used our own ON-PREMISE data centers located in  USA, Canada, and South Korea. How would it change the components in the design, deploy, and distribution in the private/public separation for this URL shortener service?
