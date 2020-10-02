@@ -19,7 +19,12 @@ The dev branches triggers builds and tagging of the images for further manual de
 
 The main branch, on approved pull requests, builds and tags the images appropriately. 
 
-![short-url Jenkins pipeline](https://i.imgur.com/0vAqjJH.png | width=500)
+![short-url Jenkins pipeline](https://i.imgur.com/0vAqjJH.png )
+
+First Header | Second Header
+------------ | -------------
+Content from cell 1 | Content from cell 2
+Content in the first column | Content in the second column
 
 Please detail what underlying infrastructure and services the system will need, each of their roles, what problems they address and what tradeoffs were involved in your design decisions. You don't need to explain the detailed inner workings of the software service itself, but you should explain what if any other systems (databases, load balancers, etc.) it relies on upon and why.
 
