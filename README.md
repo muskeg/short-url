@@ -12,10 +12,13 @@ Since the application is a small micro service and needed to be scalable and geo
 
 However, business requirements asked for greater control over the infrastructure. This is why I decided to go for a Kubernetes deployment pipeline. This allows for a more standardized pipeline across public and private environments where we only need to select the appropriate provider in our IaC platform.
 ### Application
+The application is a Flask application using a Redis datastore to store users' submitted data. Users provide an URL to the service which then serves a "shortened" URL. Shortened URL are linked to users so they can track and manage them (how often it was opened, remove them from index, etc.)
 #### Flask
-Blah blah Python
+Flask was chosen for my familiarity with Python and because of its lightweight nature. As it provides simple URL routing it seemed an appropriate choice for an URL-based service.
 #### Redis
-Blah blah fast NoSQL
+Since the service does not process highly time-sensitive transactions such as payments, Redis was chosen for its performances and its simple "leader-follower" replication capabilities.
+#### Users management / Authentication
+To allow users to track or delete their shortened URLs, a user's profile page is accessible through authentication with Google. Since the company is apparently a "Google shop" (as in using G Suite services), this allows the development of a single authentication system for both the public and the private/corporate services.
 
 ### Pipeline
 The plan is to create a Jenkins declarative pipeline that will orchestrate the application lifecycle management. The pipeline checks for 2 branches: dev and main. 
@@ -36,6 +39,7 @@ Terraform | Terraform is used to provision the Kubernetes clusters. My initial p
 Kubernetes clusters | Since we need an easily scalable, reliable and geo-distributed infrastructure to run Docker apps, Kubernetes seemed the most obvious choice. The clusters rely on a federated NGINX ingress controller to load-balance and route traffic to the most appropriate nodes. The primary cluster, holding the primary Redis database service is located in eastern North-America as the first (and currently only) subset of users and operators are located in this region. Replicas are deployed to others nodes globally as the application needs to scale up and down.
 
 ## Disaster Recovery
+
 > What steps can be taken to mitigate downtime and data loss in the event of a database or other relevant storage failure?   
 
 ## Scalability
