@@ -1,6 +1,24 @@
 # short-url
 short-url is a containerized URL shortener micro service built on Flask and Redis automatically deployed to Kubernetes clusters for auto-scaling, self-healing and globally distributed usage.
 
+- [Architecture](#architecture)
+  * [Application](#application)
+    + [Flask](#flask)
+    + [Redis](#redis)
+    + [Users management / Authentication](#users-management---authentication)
+  * [Pipeline](#pipeline)
+- [Disaster Recovery](#disaster-recovery)
+- [Scalability](#scalability)
+- [High Availability and Quality of Service](#high-availability-and-quality-of-service)
+- [Deployment Flow and Updates](#deployment-flow-and-updates)
+  * [Initial Deployment](#initial-deployment)
+  * [Updates](#updates)
+- [Monitoring and Observability](#monitoring-and-observability)
+- [Security](#security)
+- [Costing](#costing)
+- [Support and Documentation](#support-and-documentation)
+- [Public VS Private Deployment](#public-vs-private-deployment)
+
 ## Architecture
 Since the application is a small micro service and needed to be scalable and geo-distributed, my initial thoughts were to simply use an existing PaaS such as Google's App Engine, using a fully managed NoSQL database like Firestore. This would have had several advantages:
 * Quick setup for a bigger focus on development and testing
