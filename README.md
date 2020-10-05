@@ -13,6 +13,7 @@ Since the application is a small micro service and needed to be scalable and geo
 However, business requirements asked for greater control over the infrastructure. This is why I decided to go for a Kubernetes deployment pipeline. This allows for a more standardized pipeline across public and private environments where we only need to select the appropriate provider in our IaC platform.
 ### Application
 The application is a Flask application using a Redis datastore to store users' submitted data. Users provide an URL to the service which then serves a "shortened" URL. Shortened URL are linked to users so they can track and manage them (how often it was opened, remove them from index, etc.)
+![application design](https://i.imgur.com/ntv6cFk.png)
 #### Flask
 Flask was chosen for my familiarity with Python and because of its lightweight nature. As it provides simple URL routing it seemed an appropriate choice for an URL-based service.
 #### Redis
@@ -27,7 +28,7 @@ The dev branches triggers builds and tagging of the images for further manual de
 
 The main branch, on approved pull requests, builds and tags the images appropriately. 
 
-![short-url Jenkins pipeline](https://i.imgur.com/0vAqjJH.png )
+![short-url Jenkins pipeline](https://i.imgur.com/0vAqjJH.png)
 
 Components / Steps | Roles
 ------------ | -------------
