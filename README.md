@@ -40,26 +40,45 @@ Terraform | Terraform is used to provision the Kubernetes clusters. My initial p
 Kubernetes clusters | Since we need an easily scalable, reliable and geo-distributed infrastructure to run Docker apps, Kubernetes seemed the most obvious choice. The clusters rely on a federated NGINX ingress controller to load-balance and route traffic to the most appropriate nodes. The primary cluster, holding the primary Redis database service is located in eastern North-America as the first (and currently only) subset of users and operators are located in this region. Replicas are deployed to others nodes globally as the application needs to scale up and down.
 
 ## Disaster Recovery
+As the application is easily replicated, the expected downtime in case of failure is very low. Also, despite performance drawbacks two persistence strategies are used for the Redis database: RDB and AOF. The combination of the two gives us almost realtime protection while reducing the rebuild time from the AOF in case of catastrophic failure.
 
-> What steps can be taken to mitigate downtime and data loss in the event of a database or other relevant storage failure?   
+All the persistent volumes are expected to be on multi-zonal replicated storage (i.e. Google's Regional SSD Space) to avoid any storage downtime and improve global availability.
 
 ## Scalability
-> How does the system change as it scales up or down? 
-> What does it look like at 10 users vs 1 million users?
+The application should use autoscaling features where possible. Since I expect the service to be fault tolerant and because it should not require 100% continuous availability I am planing to use GKE's cluster autoscaler functionality, even if brief disruption of service on certain nodes are possible during resizing. The primary pods sets, including Redis leaders pods, could be excluded from autoscaling.
+
+Since the service is of limited complexity and is not expected to use a lot of resources, the initial deployment should easily run on 1 node (2 vCPUs, 7.5 GB RAM - n1-standard-2). Even with a single machine, the specifications should leave idle resources to for additional pods deployments on that machine when necessary. This ensures we already have available resources for scaling if there were some usage bursts before the system requires and provisions additional nodes.
+
+As the userbase gets bigger, additional zonal clusters can be spun up to cover and balance resources usage where the users are physically located.  
+
+_<sub><sup>(note: I hesitated between manual and automatic scaling as it remains a risk of semi-uncontrolled billing, especially when you're not 100% sure of all the details. I went for automatic scaling mostly because it "looked" nice on paper but in a real life scenario I think I would prefer to get a certain amount of usage statistics before enabling full-fledged automating scaling. Just to be sure we don't end up with thousands of dollars to pay for a small service like this one)</sup></sub>_
+
 
 ## High Availability and Quality of Service
-> What steps should be taken to provide the majority of users with the highest quality service?
+Running the service at a Cloud provider should help greatly in offering higher availability (expected SLA of at least 99.5%). As mentioned previously, the use of regional persistent disks allows for multi-zone replication reducing latency to access the storage and making sure it stays up even through a hypothetical zonal failure. 
+
+To help users reach the service as quickly as possible, a federated NGINX (for its `rewrite` capabilities but also for personal preferences) ingress controller is used to load-balance traffic to the most appropriate service's pods. The ingress controller allows us to centralize load balancing and ingress rules. As clusters are deployed globally, the ingress controller ensures users reach the closest (or most available) pod for better response times. 
 
 ## Deployment Flow and Updates
-> What does the deployment process look like, both for initial deployments and for updates?
+The Jenkins pipeline should manage two types of events:
+* Initial deployment: when no infrastructure has been provisioned, app is not running
+* Updates: infrastructure is already available, app is already running and serving clients
+### Initial Deployment
+When the application is first deployed, Jenkins should first trigger infrastructure provisioning steps after a successful build of the Docker image. After creating the Kubernetes cluster, Jenkins should then apply a deployment definition yaml file to the cluster that includes the ingress controller, the persistent volume claims and the Prometheus sidecar containers (as described in the next section)
+### Updates
+Since the service will eventually run in multiple replicated pods and nodes, I opted for a rolling updates strategy. After a successful stable and approved build, if the infrastructure is already deployed and the service is running, Jenkins should simply `rollout` the deployment to replace the existing pods with the latest version of the images.
 
 ## Monitoring and Observability
+blabla Prometheus
 > How do we measure the health and performance of the system?
 
 ## Security
+blabla bastion, private management endpoint
+blabla user content sanitizing
 > What steps would you take to secure these systems?
 
 ## Costing
+bla bla number of nodes
 > What cost considerations would there be?
 
 ## Support and Documentation
