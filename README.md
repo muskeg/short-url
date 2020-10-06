@@ -18,6 +18,8 @@ short-url is a containerized URL shortener micro service built on Flask and Redi
 - [Costing](#costing)
 - [Support and Documentation](#support-and-documentation)
 - [Public VS Private Deployment](#public-vs-private-deployment)
+  * [Load Balancing](#load-balancing)
+  * [Scaling](#scaling)
 
 ## Architecture
 Since the application is a small micro service and needed to be scalable and geo-distributed, my initial thoughts were to simply use an existing PaaS such as Google's App Engine, using a fully managed NoSQL database like Firestore. This would have had several advantages:
@@ -54,7 +56,7 @@ Git Repo | I use a git repo not only for the application code but also for the p
 Webhooks | Webhooks are used to trigger jobs on the Jenkins server. 
 Jenkins | A declarative pipeline controls the build of the app images but also the provisioning of the infrastructure
 Docker Registry | A private docker registry is used to store built images. A public registry could be used but the private registry lets us keep production applications private. The pipeline could be modified to push dev images or another "community" branch to a public registry.
-Terraform | Terraform is used to provision the Kubernetes clusters. My initial plan was to use Ansible to configure Kubernetes nodes and join them into clusters. In the end, the choice of Terraform was mostly to take advantage of the different providers, allowing us to create conditional deployment steps specifying the environment where to build the application's infrastructure from scratch. Effectively removing the need to initially deploy "vanilla" nodes on which apply an Ansible role. 
+Terraform | Terraform is used to provision the Kubernetes clusters. My initial plan was to use Ansible to configure pre-existing VMs and turn them into nodes of a custom cluster. In the end, the choice of Terraform was mostly to take advantage of the different providers and modules, allowing for a more unified strategy in case we end up wanting to shift between traditional VMs or VMware's Tanzu or any Cloud vendor's solution like GKE. 
 Kubernetes clusters | Since we need an easily scalable, reliable and geo-distributed infrastructure to run Docker apps, Kubernetes seemed the most obvious choice. The clusters rely on a federated NGINX ingress controller to load-balance and route traffic to the most appropriate nodes. The primary cluster, holding the primary Redis database service is located in eastern North-America as the first (and currently only) subset of users and operators are located in this region. Replicas are deployed to others nodes globally as the application needs to scale up and down.
 
 ## Disaster Recovery
@@ -87,20 +89,28 @@ When the application is first deployed, Jenkins should first trigger infrastruct
 Since the service will eventually run in multiple replicated pods and nodes, I opted for a rolling updates strategy. After a successful stable and approved build, if the infrastructure is already deployed and the service is running, Jenkins should simply `rollout` the deployment to replace the existing pods with the latest version of the images.
 
 ## Monitoring and Observability
-blabla Prometheus
-> How do we measure the health and performance of the system?
+I'm using Prometheus to gain observability on the application and the infrastructure where it's running. To do so, a `node_exporter` sidecar container is deployed alongside the application images to expose pods' metrics. Redis instances could also have an additional Redis exporter sidecar. 
+
+The metrics are then sent to Grafana to setup visualization dashboards and alerts. We should be looking for the number of requests to each pods as well as resources usage to make sure the load is indeed balanced properly and the scaling limits are appropriate. Redis monitoring should look for the number of calls made to the DBs and the numbner of objects they contain to make sure we they do not suffer from latency spikes during persistence filesave operations.
 
 ## Security
-blabla bastion, private management endpoint
-blabla user content sanitizing
-> What steps would you take to secure these systems?
+Since the application receives users data we should first ensure that this data is properly sanitized before processing it. During build steps we could use an OWASP plugin to scan the code and application for vulnerabilities. Since we are using containers, the application and containers should be designed to run with a non-root user.
+
+To secure the infrastructure, we need to make sure the API management endpoints and other metrics exports are not openly reachable. A bastion host allowing access to limited IP ranges could be setup for remote access and management. We should also prevent unneeded kernel modules to be loaded using node's deny lists where applicable.  
 
 ## Costing
-bla bla number of nodes
-> What cost considerations would there be?
+I imagine that auto-scaling clusters can create some surprises in billing and costs. One of the strategy mentioned earlier is to provision nodes with larger resources. While this has the downside of making initial costs slightly higher, this is quickly balanced by allowing us to pack more pods in the same nodes as the application scales. In comparison to running a higher number of smaller sized nodes, this strategy helps avoiding having nodes idling after being provisioned. I believe this should help in making costs scaling more predictable.  
 
 ## Support and Documentation
-> What are the considerations for keeping it supported over time, including keeping support documentation up-to-date?
+To ensure it's available and updated frequently, I believe the documentation should be as close to the code as possible, whether it's application code or infrastructure code. This means keeping it in the SCM such as this README in the git repository. Folders containing code should also contain proper documentation pertaining to that code. Keeping it close to the code makes that a reminder to not leave it untouched when updating the code.
+
+The application is quite basic with a limited set of features. This should make general support fairly easy with a (hopefully) limited number of possible issues.  Again, the SCM's wiki sections could contain FAQs to guide that support and possibly allow for auto-support.
 
 ## Public VS Private Deployment
-> What would the deployment look like if you had to add-on a separate URL for the same application for the company employees only that used our own ON-PREMISE data centers located in  USA, Canada, and South Korea. How would it change the components in the design, deploy, and distribution in the private/public separation for this URL shortener service?
+Knowing that the application required the ability to be deployed on on-premise infrastructure directed the unified IaC strategy. This means that the differences in the deployment between a publicly accessible service and a privately hosted service should be minimal. For example, using Terraform's vSphere provider should make the provisioning of a VMware-based in-house Kubernetes cluster more simple while leaving the rest of the application deployment untouched (assuming VM storage for the database also has snapshots and replication capabilities). The main differences, especially since it would use its own separate access URL, would be in the ingress/load balancing and autoscaling systems. 
+
+### Load Balancing
+Since we will be hosting clusters in 3 different data centers the company owns in the world, we should leverage the company's internal DNS architecture to route traffic appropriately instead of trying to replicate a Cloud vendor's system with things like [MetalLB](https://metallb.universe.tf/). It should be fairly straightforward to route traffic to the best available resource using the company's infrastructure.
+
+### Scaling
+Because we already know that an internal service will only have to handle at max a few thousands users, autoscaling the application seems unnecessary. We should be able to determine initially how many nodes would be required to handle that traffic (which, considering the service, will mostly likely look like single-node clusters in each data center) and still have time to adjust in a more manual fashion, would the company's employees count grow immensely. 
