@@ -59,7 +59,7 @@ resource "google_container_node_pool" "primary_nodes" {
     }
   }
   # With autoscaling capabilities
-  autoscaling = {
+  autoscaling {
     min_node_count = 1
     max_node_count = 2 
   }
