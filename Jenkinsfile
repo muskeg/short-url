@@ -49,7 +49,7 @@ pipeline {
                 sh """
                 cd $WORKSPACE/IaC/
                 terraform init
-                terraform plan
+                terraform plan gke
                 """
             }
         }
