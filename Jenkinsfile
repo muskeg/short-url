@@ -39,11 +39,18 @@ pipeline {
                 curl https://sdk.cloud.google.com | bash
                 """
 
-                // Configure GCloud and adding account to the ADC for Terraform to use
+                // Configure GCloud and export application credentials for Terraform to use
                 sh """
                 /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GCLOUD_SA
                 /root/google-cloud-sdk/bin/gcloud config set project short-url-291201
-                /root/google-cloud-sdk/bin/gcloud auth application-default login
+                export GOOGLE_APPLICATION_CREDENTIALS=$GCLOUD_SA
+                """
+
+                // Terraform + GKE
+                sh """
+                cd $WORKSPACE/IaC/
+                terraform init
+                terraform plan
                 """
             }
         }
