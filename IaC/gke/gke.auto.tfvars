@@ -1,2 +1,4 @@
-project_id = "short-url-291201"
 region = "northamerica-northeast1-a"
+gke_node_count = 1
+scaling_min = 1
+scaling_max =2 

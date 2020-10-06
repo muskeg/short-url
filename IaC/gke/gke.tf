@@ -1,17 +1,22 @@
 variable "gke_username" {
-  default     = "short-url-user"
   description = "GKE username"
 }
 
 variable "gke_password" {
-  default     = "short-url-password"
   description = "GKE password"
 }
 
 variable "gke_node_count" {
-  default     = 1
-  description = "Nodes to provision"
+  description = "Number of nodes to provision"
 }
+
+variable "scaling_min" {
+  description = "Minimum node count for autoscaling"
+} 
+
+variable "scaling_max" {
+  description = "Maximum node count for autoscaling"
+} 
 
 # Create the cluster and remove the default node pool to use
 # a separately managed node pool defined below
@@ -60,8 +65,8 @@ resource "google_container_node_pool" "primary_nodes" {
   }
   # With autoscaling capabilities
   autoscaling {
-    min_node_count = 1
-    max_node_count = 2 
+    min_node_count = var.scaling_min
+    max_node_count = var.scaling_max
   }
 }
 
