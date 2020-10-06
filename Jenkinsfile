@@ -26,7 +26,10 @@ pipeline {
                 echo "http://nl.alpinelinux.org/alpine/edge/community/" >> /etc/apk/repositories
                 echo "http://nl.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
                 apk update
-                apk add gawk git git-secret terraform python curl bash
+                apk add gawk git git-secret terraform python3 curl bash
+                ln -sf python3 /usr/bin/python
+                python3 -m ensurepip
+                pip3 install --no-cache --upgrade pip setuptools
                 gpg --batch --import $GPG_SECRET_KEY
                 cd $WORKSPACE
                 git secret reveal -f -p ''
