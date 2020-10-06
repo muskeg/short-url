@@ -16,7 +16,7 @@ pipeline {
             }
             environment {
                 GPG_SECRET_KEY = credentials('gpg-secret-key')
-                GCLOUD_SA = credentials('short-url-service-account')
+                GOOGLE_APPLICATION_CREDENTIALS = credentials('short-url-service-account')
             }
             steps {
                 checkout scm
@@ -41,7 +41,7 @@ pipeline {
 
                 // Configure GCloud and export application credentials for Terraform to use
                 sh """
-                /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GCLOUD_SA
+                /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
                 /root/google-cloud-sdk/bin/gcloud config set project short-url-291201
                 """
 
