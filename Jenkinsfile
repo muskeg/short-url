@@ -16,9 +16,12 @@ pipeline {
             }
             environment {
                 GPG_SECRET_KEY = credentials('gpg-secret-key')
+                GCLOUD_SA = credentials('short-url-service-account')
             }
             steps {
                 checkout scm
+
+                // Prepare the container for GKE provisioning
                 sh """
                 echo "http://dl-cdn.alpinelinux.org/alpine/v3.12/main" >> /etc/apk/repositories
                 echo "http://dl-cdn.alpinelinux.org/alpine/v3.12/community" >> /etc/apk/repositories
@@ -32,8 +35,14 @@ pipeline {
                 pip3 install --no-cache --upgrade pip setuptools
                 gpg --batch --import $GPG_SECRET_KEY
                 cd $WORKSPACE
-                git secret reveal -f -p ''
+                #git secret reveal -f -p ''
                 curl https://sdk.cloud.google.com | bash
+                """
+
+                // Configure GCloud
+                sh """
+                gcloud auth activate-service-account --key-file=$GCLOUD_SA
+                gcloud config set project short-url
                 """
             }
         }
