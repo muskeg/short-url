@@ -41,8 +41,8 @@ pipeline {
 
                 // Configure GCloud
                 sh """
-                ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GCLOUD_SA
-                ./google-cloud-sdk/bin/gcloud config set project short-url
+                /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GCLOUD_SA
+                /root/google-cloud-sdk/bin/gcloud config set project short-url
                 """
             }
         }
