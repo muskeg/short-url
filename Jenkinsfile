@@ -1,6 +1,19 @@
 pipeline {
     agent none
     stages {
+        stage('Clean up') {
+            /*
+            This stage cleans the workspace so we start from scratch every time
+            */
+            agent {
+                    node {
+                            label 'jenkins@muskegg'
+                    }
+            }
+            steps {
+                    cleanWs()
+            }
+        }
         stage('GKE Cluster Provisioning') {
             /*
             This stage uses a small alpinelinux container to install and manage git-secret. 
