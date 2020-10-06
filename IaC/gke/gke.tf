@@ -1,10 +1,10 @@
 variable "gke_username" {
-  default     = ""
+  default     = "short-url-user"
   description = "GKE username"
 }
 
 variable "gke_password" {
-  default     = ""
+  default     = "short-url-password"
   description = "GKE password"
 }
 
@@ -13,9 +13,10 @@ variable "gke_node_count" {
   description = "Nodes to provision"
 }
 
-# GKE cluster
+# Create the cluster and remove the default node pool to use
+# a separately managed node pool defined below
 resource "google_container_cluster" "primary" {
-  name     = "${var.project_id}-gke"
+  name     = "${var.project_id}-cluster"
   location = var.region
 
   remove_default_node_pool = true
@@ -50,12 +51,18 @@ resource "google_container_node_pool" "primary_nodes" {
     labels = {
       env = var.project_id
     }
-
+    # With (slightly) bigger machine type
     machine_type = "n1-standard-2"
     tags         = ["gke-node", "${var.project_id}-gke"]
     metadata = {
       disable-legacy-endpoints = "true"
     }
+    # With autoscaling capabilities
+    autoscaling = {
+       min_node_count = 1
+       max_node_count = 2 
+    }
+
   }
 }
 

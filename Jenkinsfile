@@ -43,7 +43,6 @@ pipeline {
                 sh """
                 /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GCLOUD_SA
                 /root/google-cloud-sdk/bin/gcloud config set project short-url-291201
-                export GOOGLE_APPLICATION_CREDENTIALS=$GCLOUD_SA
                 """
 
                 // Terraform + GKE
