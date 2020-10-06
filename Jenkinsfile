@@ -60,9 +60,9 @@ pipeline {
 
                 // Terraform + GKE
                 sh """
-                cd $WORKSPACE/IaC/
-                terraform init gke
-                terraform plan gke
+                cd $WORKSPACE/IaC/gke
+                terraform init
+                terraform plan
                 """
             }
         }
