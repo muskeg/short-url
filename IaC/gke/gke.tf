@@ -18,10 +18,6 @@ variable "scaling_max" {
   description = "Maximum node count for autoscaling"
 } 
 
-variable "primary_zone" {
-  description = "Primary cluster zone"
-} 
-
 # Create the cluster and remove the default node pool to use
 # a separately managed node pool defined below
 resource "google_container_cluster" "primary" {
