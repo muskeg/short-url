@@ -1,10 +1,27 @@
+/* 
+This pipeline is a GKE deployment PoC. It is fairly self-contained,
+using a Docker agent to ensure the same environment between Jenkins agents.
+
+It assumes you configured a few credentials, as described in the environment section
+of the 'GKE Cluster Provisioning' stage:
+- gpg-secret-key:               a secret file containing a GPG key for the decrypting of git-secret
+
+- short-url-service-account:    a secret file containing the GCP service account .json
+                                key file giving permissions to the project
+
+- short-url-projectID:          a secret text representing the GCP project ID
+
+- terraform-cli-config:         a secret file containing a .terraformrc CLI config file. It is
+                                used to provide credentials for the backend.
+
+*/
 pipeline {
     agent none
     stages {
         stage('Clean up, pull and read environment variables') {
             /*
-            This stage cleans the workspace so we start from scratch every time
-            and then pulls code from git.
+            This stage cleans the workspace so we start from scratch every time.
+            Once cleaned up, we checkout the git repo.
             */
             agent {
                 node {
@@ -58,17 +75,12 @@ pipeline {
                 """
 
                 /* 
-                Configure GCloud and export application credentials for Terraform to use.
-                The projectid.env files is revealed with git-secret earlier. It contains the
-                GCP project ID. The same ID is used in secrets.auto.tfvars also revealed 
-                during the previous step.
-                */
-                // sh """
-                // /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                // /root/google-cloud-sdk/bin/gcloud config set project $SHORT_URL_PROJECTID
-                // """
+                Terraform + GKE
 
-                // Terraform + GKE
+                Using Jenkins's credentials to copy the credentials files to workspace folder.
+                This allows connection to GCP and to the remote backend to ensure persistence of
+                the terraform state between builds.
+                */
                 sh """
                 cp $TERRAFORM_RC ~/.terraformrc
                 cd $WORKSPACE/IaC/gke
