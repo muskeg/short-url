@@ -1,9 +1,10 @@
 pipeline {
     agent none
     stages {
-        stage('Clean up') {
+        stage('Clean up, pull and read environment variables') {
             /*
             This stage cleans the workspace so we start from scratch every time
+            and then pulls code from git.
             */
             agent {
                     node {
@@ -12,6 +13,7 @@ pipeline {
             }
             steps {
                     cleanWs()
+                    checkout scm
             }
         }
         stage('GKE Cluster Provisioning') {
@@ -30,9 +32,9 @@ pipeline {
             environment {
                 GPG_SECRET_KEY = credentials('gpg-secret-key')
                 GOOGLE_APPLICATION_CREDENTIALS = credentials('short-url-service-account')
+                SHORT_URL_PROJECTID = credentials('short-url-projectID')
             }
             steps {
-                checkout scm
 
                 // Prepare the container for GKE provisioning
                 sh """
@@ -60,7 +62,7 @@ pipeline {
                 */
                 sh """
                 /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                eval $(egrep -v '^#' projectid.env | xargs) /root/google-cloud-sdk/bin/gcloud config set project $PROJECT_ID
+                eval $(egrep -v '^#' projectid.env | xargs) /root/google-cloud-sdk/bin/gcloud config set project $SHORT_URL_PROJECTID
                 """
 
                 // Terraform + GKE
