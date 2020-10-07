@@ -7,21 +7,20 @@ pipeline {
             and then pulls code from git.
             */
             agent {
-                    node {
-                            label 'jenkins@muskegg'
-                    }
+                node {
+                    abel 'jenkins@muskegg'
+                }
             }
             steps {
-                    cleanWs()
-                    checkout scm
+                cleanWs()
+                checkout scm
             }
         }
         stage('GKE Cluster Provisioning') {
             /*
             This stage uses a small alpinelinux container to install and manage git-secret. 
             This allows Jenkins to reveal encrypted secrets in the SCM repositories.
-            The container also installs Terraform and the Google Cloud SDK
-            to provision the GKE cluster.
+            The container also installs Terraform and the Google Cloud SDK to provision the GKE cluster.
             */
             agent {
                 docker {
