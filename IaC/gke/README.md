@@ -13,7 +13,7 @@ This folder contains the GKE cluster definition files
 This file contains the backend definition. Currently uses a Hashicorp's remote backend. My Jenkins pipeline manages the .terraformrc for authentication purposes. You should adjust this to your environment
 
 ## vpcnetwork&#46;tf
-This file contains the google provider and the Virtual Private Cloud definitions.
+This file contains the google provider (including credentials definition) and the Virtual Private Cloud definitions.
 It has a `region` (the region where the VPC is deployed) output
 
 ## gke&#46;tf

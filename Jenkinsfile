@@ -63,13 +63,17 @@ pipeline {
                 GCP project ID. The same ID is used in secrets.auto.tfvars also revealed 
                 during the previous step.
                 */
+                // sh """
+                // /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                // /root/google-cloud-sdk/bin/gcloud config set project $SHORT_URL_PROJECTID
+                // """
+
                 // Terraform + GKE
                 sh """
                 cp $TERRAFORM_RC ~/.terraformrc
                 cd $WORKSPACE/IaC/gke
+                cp $GOOGLE_APPLICATION_CREDENTIALS service-account.json
                 terraform init
-                /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                /root/google-cloud-sdk/bin/gcloud config set project $SHORT_URL_PROJECTID
                 terraform apply -auto-approve
                 """
             }
