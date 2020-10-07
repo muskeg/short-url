@@ -46,8 +46,6 @@ pipeline {
                 apk update
                 apk add gawk git git-secret terraform python3 curl bash
                 ln -sf python3 /usr/bin/python
-                python3 -m ensurepip
-                pip3 install --no-cache --upgrade pip setuptools
                 gpg --batch --import $GPG_SECRET_KEY
                 cd $WORKSPACE
                 git secret reveal -f -p ''
