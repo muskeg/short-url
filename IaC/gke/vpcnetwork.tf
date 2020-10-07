@@ -25,7 +25,7 @@ resource "google_compute_subnetwork" "subnet" {
 
 }
 
-output "region" {
-  value       = var.region
-  description = "Region"
+output "zone" {
+  value       = var.primary_zone
+  description = "Zone"
 }
