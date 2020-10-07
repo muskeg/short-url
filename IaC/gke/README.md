@@ -21,6 +21,7 @@ Contains variables defition
 Variable names | Described in | Description
 ------------ | ------------- | -------------
 region | vpcnetwork&#46;tf | Region where the cluster is deployed (ref: https://cloud.google.com/compute/docs/regions-zones). Only 1 region used at the moment
+primary_zone | gke&#46;tf | The zone where to deploy the primary cluster
 gke_node_count | gke&#46;tf | The number of nodes to provision initially
 scaling_min | gke&#46;tf | The minimum number of nodes used in autoscaling
 scaling_max | gke&#46;tf | The maximum number of nodes used in autoscaling
