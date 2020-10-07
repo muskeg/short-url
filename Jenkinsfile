@@ -65,8 +65,7 @@ pipeline {
 
                 // Terraform + GKE
                 sh """
-                cat $TERRAFORM_RC > ~/.terraformrc
-                source ~/.terraformrc
+                cp $TERRAFORM_RC ~/.terraformrc
                 cd $WORKSPACE/IaC/gke
                 terraform init
                 terraform apply -auto-approve
