@@ -29,9 +29,14 @@ pipeline {
                 }
             }
             environment {
+                // Credentials used by the pipeline
+                // GPG key for git-secret
                 GPG_SECRET_KEY = credentials('gpg-secret-key')
+                // GPC service account credentials
                 GOOGLE_APPLICATION_CREDENTIALS = credentials('short-url-service-account')
+                // The GCP project ID 
                 SHORT_URL_PROJECTID = credentials('short-url-projectID')
+                // The Terraform CLI config file
                 TERRAFORM_RC = credentials('terraform-cli-config')
             }
             steps {
