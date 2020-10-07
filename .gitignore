@@ -1,3 +1,4 @@
 .gitsecret/keys/random_seed
 !*.secret
 IaC/gke/secrets.auto.tfvars
+projectid.env

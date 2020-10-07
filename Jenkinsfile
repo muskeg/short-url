@@ -48,14 +48,19 @@ pipeline {
                 pip3 install --no-cache --upgrade pip setuptools
                 gpg --batch --import $GPG_SECRET_KEY
                 cd $WORKSPACE
-                #git secret reveal -f -p ''
+                git secret reveal -f -p ''
                 curl https://sdk.cloud.google.com | bash
                 """
 
-                // Configure GCloud and export application credentials for Terraform to use
+                /* 
+                Configure GCloud and export application credentials for Terraform to use.
+                The projectid.env files is revealed with git-secret earlier. It contains the
+                GCP project ID. The same ID is used in secrets.auto.tfvars also revealed 
+                during the previous step.
+                */
                 sh """
                 /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                /root/google-cloud-sdk/bin/gcloud config set project short-url-291201
+                eval $(egrep -v '^#' projectid.env | xargs) /root/google-cloud-sdk/bin/gcloud config set project $PROJECT_ID
                 """
 
                 // Terraform + GKE
