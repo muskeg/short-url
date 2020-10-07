@@ -32,6 +32,7 @@ pipeline {
                 GPG_SECRET_KEY = credentials('gpg-secret-key')
                 GOOGLE_APPLICATION_CREDENTIALS = credentials('short-url-service-account')
                 SHORT_URL_PROJECTID = credentials('short-url-projectID')
+                TERRAFORM_RC = credentials('terraform-cli-config')
             }
             steps {
 
@@ -64,6 +65,8 @@ pipeline {
 
                 // Terraform + GKE
                 sh """
+                cp $TERRAFORM_RC ~/.terraformrc
+                source ~/.terraformrc
                 cd $WORKSPACE/IaC/gke
                 terraform init
                 terraform apply -auto-approve
