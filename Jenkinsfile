@@ -8,12 +8,12 @@ pipeline {
             */
             agent {
                 node {
-                    abel 'jenkins@muskegg'
+                    label 'jenkins@muskegg'
                 }
             }
             steps {
-                cleanWs()
-                checkout scm
+                    cleanWs()
+                    checkout scm
             }
         }
         stage('GKE Cluster Provisioning') {
