@@ -1,4 +1,4 @@
-region = "northamerica-northeast1-a"
+region = "northamerica-northeast1"
 gke_node_count = 1
 scaling_min = 1
 scaling_max =2 
