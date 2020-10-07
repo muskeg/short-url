@@ -65,7 +65,7 @@ pipeline {
 
                 // Terraform + GKE
                 sh """
-                cp $TERRAFORM_RC ~/.terraformrc
+                cat $TERRAFORM_RC > ~/.terraformrc
                 source ~/.terraformrc
                 cd $WORKSPACE/IaC/gke
                 terraform init
