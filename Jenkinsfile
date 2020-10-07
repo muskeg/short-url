@@ -69,7 +69,7 @@ pipeline {
                 sh """
                 cd $WORKSPACE/IaC/gke
                 terraform init
-                terraform plan
+                terraform apply -auto-approve
                 """
             }
         }
