@@ -7,7 +7,7 @@ short-url is a containerized URL shortener micro service built on Flask and Redi
     + [Redis](#redis)
     + [Users management / Authentication](#users-management---authentication)
   * [Pipeline](#pipeline)
-- [Disaster Recovery](#disaster-recovery)
+- [Systems Failure and Disaster Recovery](#systems-failure-and-disaster-recovery)
 - [Scalability](#scalability)
 - [High Availability and Quality of Service](#high-availability-and-quality-of-service)
 - [Deployment Flow and Updates](#deployment-flow-and-updates)
@@ -30,7 +30,7 @@ Since the application is a small micro service and needed to be scalable and geo
   * High availability
   * Easy scaling
 
-However, business requirements asked for greater control over the infrastructure. This is why I decided to go for a Kubernetes deployment pipeline. This allows for a more standardized pipeline across public and private environments where we only need to select the appropriate provider in our IaC platform.
+However, business requirements asked for greater control over the infrastructure for possible on-premise deployment. This is why I decided to go for a Terraform-managed Kubernetes deployment pipeline. This allows for a more standardized pipeline across public and private environments where we only need to select the appropriate provider in our IaC platform.
 ### Application
 The application is a Flask application using a Redis datastore to store users' submitted data. Users provide an URL to the service which then serves a "shortened" URL. Shortened URL are linked to users so they can track and manage them (how often it was opened, remove them from index, etc.)
 ![application design](https://i.imgur.com/ntv6cFk.png)
@@ -52,17 +52,19 @@ The main branch, on approved pull requests, builds and tags the images appropria
 
 Components / Steps | Roles
 ------------ | -------------
-Git Repo | I use a git repo not only for the application code but also for the pipeline and infrastructure definition. It is fairly easy to safely store secrets in the repo using encryption tools like [git-secret](https://git-secret.io/) or [git-crypt](https://github.com/AGWA/git-crypt). This creates an easily maintainable and self-contained environment. The repo currently has two branches: `dev` and `main` where `dev` is for, well, urh, app development purposes while `main` gets pushed to production. It would be easy to add feature branches or other specific tags into the pipeline but at the moment we do not use any.
+Git Repo | I use a git repo not only for the application code but also for the pipeline and infrastructure definition. It is fairly easy to safely store secrets in the repo using encryption tools like [git-secret](https://git-secret.io/) or [git-crypt](https://github.com/AGWA/git-crypt). This creates an easily maintainable and self-contained environment. The repo currently has two branches: `dev` and `main` where `dev` is for, well, urh, app development purposes while `main` gets pushed to production. It would be easy to add feature or release branches into the pipeline but at the moment we do not use any.
 Webhooks | Webhooks are used to trigger jobs on the Jenkins server. 
 Jenkins | A declarative pipeline controls the build of the app images but also the provisioning of the infrastructure
-Docker Registry | A private docker registry is used to store built images. A public registry could be used but the private registry lets us keep production applications private. The pipeline could be modified to push dev images or another "community" branch to a public registry.
-Terraform | Terraform is used to provision the Kubernetes clusters. My initial plan was to use Ansible to configure pre-existing VMs and turn them into nodes of a custom cluster. In the end, the choice of Terraform was mostly to take advantage of the different providers and modules, allowing for a more unified strategy in case we end up wanting to shift between traditional VMs or VMware's Tanzu or any Cloud vendor's solution like GKE. 
+Docker Registry | A private docker registry is used to store built images. A public registry could be used but the private registry lets us keep production applications private. The pipeline could be modified to push say, another "community" branch to a public registry.
+Terraform | Terraform is used to provision the Kubernetes clusters. My initial plan was to use Ansible to configure pre-existing VMs and turn them into nodes of a custom cluster. In the end, the choice of Terraform was mostly to take advantage of the different providers and modules, allowing for a more unified strategy in case we end up wanting to shift between traditional VMs or VMware's Tanzu or any Cloud vendor's solution (like GKE used at the moment). 
 Kubernetes clusters | Since we need an easily scalable, reliable and geo-distributed infrastructure to run Docker apps, Kubernetes seemed the most obvious choice. The clusters rely on a federated NGINX ingress controller to load-balance and route traffic to the most appropriate nodes. The primary cluster, holding the primary Redis database service is located in eastern North-America as the first (and currently only) subset of users and operators are located in this region. Replicas are deployed to others nodes globally as the application needs to scale up and down.
 
-## Disaster Recovery
-As the application is easily replicated, the expected downtime in case of failure is very low. Also, despite performance drawbacks two persistence strategies are used for the Redis database: RDB and AOF. The combination of the two gives us almost realtime protection while reducing the rebuild time from the AOF in case of catastrophic failure.
+## Systems Failure and Disaster Recovery
+As the application is easily replicated, the expected downtime in case of any component failure is very low. Also, despite performance drawbacks, two persistence strategies are used for the Redis database: RDB and AOF. The combination of the two gives us near realtime protection while reducing the rebuild time from the AOF in case of catastrophic failure.
 
 All the persistent volumes are expected to be on multi-zonal replicated storage (i.e. Google's Regional SSD Space) to avoid any storage downtime and improve global availability.
+
+Since builds and deploys are managed by Jenkins and Terraform, it's easy to rollback in case of failing deployments.
 
 ## Scalability
 The application should use autoscaling features where possible. Since I expect the service to be fault tolerant and because it should not require 100% continuous availability I am planing to use GKE's cluster autoscaler functionality, even if brief disruption of service on certain nodes are possible during resizing. The primary pods sets, including Redis leaders pods, could be excluded from autoscaling.
@@ -91,7 +93,7 @@ Since the service will eventually run in multiple replicated pods and nodes, I o
 ## Monitoring and Observability
 I'm using Prometheus to gain observability on the application and the infrastructure where it's running. To do so, a `node_exporter` sidecar container is deployed alongside the application images to expose pods' metrics. Redis instances could also have an additional Redis exporter sidecar. 
 
-The metrics are then sent to Grafana to setup visualization dashboards and alerts. We should be looking for the number of requests to each pods as well as resources usage to make sure the load is indeed balanced properly and the scaling limits are appropriate. Redis monitoring should look for the number of calls made to the DBs and the numbner of objects they contain to make sure we they do not suffer from latency spikes during persistence filesave operations.
+The metrics are then sent to Grafana to setup visualization dashboards and alerts. We should be looking for the number of requests to each pods as well as resources usage to make sure the load is indeed balanced properly and the scaling limits are appropriate. Redis monitoring should look for the number of calls made to the DBs and the number of objects they contain to make sure we they do not suffer from latency spikes during persistence file-save operations.
 
 ## Security
 Since the application receives users data we should first ensure that this data is properly sanitized before processing it. During build steps we could use an OWASP plugin to scan the code and application for vulnerabilities. Since we are using containers, the application and containers should be designed to run with a non-root user.
@@ -99,10 +101,10 @@ Since the application receives users data we should first ensure that this data 
 To secure the infrastructure, we need to make sure the API management endpoints and other metrics exports are not openly reachable. A bastion host allowing access to limited IP ranges could be setup for remote access and management. We should also prevent unneeded kernel modules to be loaded using node's deny lists where applicable.  
 
 ## Costing
-I imagine that auto-scaling clusters can create some surprises in billing and costs. One of the strategy mentioned earlier is to provision nodes with larger resources. While this has the downside of making initial costs slightly higher, this is quickly balanced by allowing us to pack more pods in the same nodes as the application scales. In comparison to running a higher number of smaller sized nodes, this strategy helps avoiding having nodes idling after being provisioned. I believe this should help in making costs scaling more predictable.  
+Uncontrolled auto-scaling clusters can create some surprises in billing and costs. One of the strategy mentioned earlier is to provision nodes with larger resources. While this has the downside of making initial costs slightly higher, this is quickly balanced by allowing us to pack more pods in the same nodes as the application scales. In comparison to running a higher number of smaller sized nodes, this strategy helps avoiding having nodes idling after being provisioned. I believe this should help in making costs scaling more predictable.  
 
 ## Support and Documentation
-To ensure it's available and updated frequently, I believe the documentation should be as close to the code as possible, whether it's application code or infrastructure code. This means keeping it in the SCM such as this README in the git repository. Folders containing code should also contain proper documentation pertaining to that code. Keeping it close to the code makes that a reminder to not leave it untouched when updating the code.
+To ensure it's available and updated frequently, I believe the documentation should be as close to the code as possible, whether it's application code or infrastructure code. This means keeping it in the SCM such as this README in the git repository. Folders containing code should also contain proper documentation pertaining to that code. Keeping it close to the code makes that a reminder to not leave it untouched when updating the code. This is not to say that we shouldn't use a centralized knowledge base such as [Confluence](https://www.atlassian.com/software/confluence) as sometimes it does help having large lists of projects documentation. But over the years I found that the closer the documentation is to the things they document, the more "alive" they stay. 
 
 The application is quite basic with a limited set of features. This should make general support fairly easy with a (hopefully) limited number of possible issues.  Again, the SCM's wiki sections could contain FAQs to guide that support and possibly allow for auto-support.
 
@@ -110,7 +112,7 @@ The application is quite basic with a limited set of features. This should make 
 Knowing that the application required the ability to be deployed on on-premise infrastructure directed the unified IaC strategy. This means that the differences in the deployment between a publicly accessible service and a privately hosted service should be minimal. For example, using Terraform's vSphere provider should make the provisioning of a VMware-based in-house Kubernetes cluster more simple while leaving the rest of the application deployment untouched (assuming VM storage for the database also has snapshots and replication capabilities). The main differences, especially since it would use its own separate access URL, would be in the ingress/load balancing and autoscaling systems. 
 
 ### Load Balancing
-Since we will be hosting clusters in 3 different data centers the company owns in the world, we should leverage the company's internal DNS architecture to route traffic appropriately instead of trying to replicate a Cloud vendor's system with things like [MetalLB](https://metallb.universe.tf/). It should be fairly straightforward to route traffic to the best available resource using the company's infrastructure.
+Since we will be hosting clusters in 3 different data centers the company already owns in the world, we should leverage the company's internal DNS architecture to route traffic appropriately instead of trying to replicate a Cloud vendor's system with things like [MetalLB](https://metallb.universe.tf/). It should be fairly straightforward to route traffic to the best available resource using the company's infrastructure.
 
 ### Scaling
 Because we already know that an internal service will only have to handle at max a few thousands users, autoscaling the application seems unnecessary. We should be able to determine initially how many nodes would be required to handle that traffic (which, considering the service, will mostly likely look like single-node clusters in each data center) and still have time to adjust in a more manual fashion, would the company's employees count grow immensely. 
