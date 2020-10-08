@@ -30,7 +30,7 @@ Since the application is a small micro service and needed to be scalable and geo
   * High availability
   * Easy scaling
 
-However, business requirements asked for greater control over the infrastructure. This is why I decided to go for a Kubernetes deployment pipeline. This allows for a more standardized pipeline across public and private environments where we only need to select the appropriate provider in our IaC platform.
+However, business requirements asked for greater control over the infrastructure for possible on-premise deployment. This is why I decided to go for a Terraform-managed Kubernetes deployment pipeline. This allows for a more standardized pipeline across public and private environments where we only need to select the appropriate provider in our IaC platform.
 ### Application
 The application is a Flask application using a Redis datastore to store users' submitted data. Users provide an URL to the service which then serves a "shortened" URL. Shortened URL are linked to users so they can track and manage them (how often it was opened, remove them from index, etc.)
 ![application design](https://i.imgur.com/ntv6cFk.png)
@@ -99,10 +99,10 @@ Since the application receives users data we should first ensure that this data 
 To secure the infrastructure, we need to make sure the API management endpoints and other metrics exports are not openly reachable. A bastion host allowing access to limited IP ranges could be setup for remote access and management. We should also prevent unneeded kernel modules to be loaded using node's deny lists where applicable.  
 
 ## Costing
-I imagine that auto-scaling clusters can create some surprises in billing and costs. One of the strategy mentioned earlier is to provision nodes with larger resources. While this has the downside of making initial costs slightly higher, this is quickly balanced by allowing us to pack more pods in the same nodes as the application scales. In comparison to running a higher number of smaller sized nodes, this strategy helps avoiding having nodes idling after being provisioned. I believe this should help in making costs scaling more predictable.  
+Uncontrolled uto-scaling clusters can create some surprises in billing and costs. One of the strategy mentioned earlier is to provision nodes with larger resources. While this has the downside of making initial costs slightly higher, this is quickly balanced by allowing us to pack more pods in the same nodes as the application scales. In comparison to running a higher number of smaller sized nodes, this strategy helps avoiding having nodes idling after being provisioned. I believe this should help in making costs scaling more predictable.  
 
 ## Support and Documentation
-To ensure it's available and updated frequently, I believe the documentation should be as close to the code as possible, whether it's application code or infrastructure code. This means keeping it in the SCM such as this README in the git repository. Folders containing code should also contain proper documentation pertaining to that code. Keeping it close to the code makes that a reminder to not leave it untouched when updating the code.
+To ensure it's available and updated frequently, I believe the documentation should be as close to the code as possible, whether it's application code or infrastructure code. This means keeping it in the SCM such as this README in the git repository. Folders containing code should also contain proper documentation pertaining to that code. Keeping it close to the code makes that a reminder to not leave it untouched when updating the code. This is not to say that we shouldn't use a centralized knowledge base such as [Confluence](https://www.atlassian.com/software/confluence) as sometimes it does help having large lists of projects documentation. But over the years I found that the closer the documentation is to the things they document, the more "alive" they stay. 
 
 The application is quite basic with a limited set of features. This should make general support fairly easy with a (hopefully) limited number of possible issues.  Again, the SCM's wiki sections could contain FAQs to guide that support and possibly allow for auto-support.
 

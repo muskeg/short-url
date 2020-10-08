@@ -13,7 +13,6 @@ of the 'GKE Cluster Provisioning' stage:
 
 - terraform-cli-config:         a secret file containing a .terraformrc CLI config file. It is
                                 used to provide credentials for the backend.
-
 */
 pipeline {
     agent none
@@ -76,7 +75,6 @@ pipeline {
 
                 /* 
                 Terraform + GKE
-
                 Using Jenkins's credentials to copy the credentials files to workspace folder.
                 This allows connection to GCP and to the remote backend to ensure persistence of
                 the terraform state between builds.
