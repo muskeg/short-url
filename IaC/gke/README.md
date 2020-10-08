@@ -8,9 +8,10 @@ This folder contains the GKE cluster definition files
 ├── gke.auto.tfvars 
 └── secrets.auto.tfvars.secret
 ```
+Jenkins enables Terraform to connect to terraform.io to get the current workspace state as defined in the `backend.tf` file. Terraform then deploys or updates the GKE cluster (using Jenkins-provided credentials) according to the rest of the .tf files. 
 
 ## backend&#46;tf
-This file contains the backend definition. Currently the pipeline uses Hashicorp's remote backend. On terraform.io, the execution mode is set to "remote" and uses the manual apply method as it is controlled by Jenkins. My Jenkins pipeline manages the `.terraformrc` for authentication purposes. You should adjust this file to your environment.
+This file contains the backend definition. Currently the pipeline uses Hashicorp's remote backend to allow state persistence between builds as the Jenkins's workspace is wiped at the beginning of every build. On terraform.io, the execution mode is set to "remote" and uses the manual apply method as it is controlled by Jenkins. My Jenkins pipeline manages the `.terraformrc` for authentication purposes. You should adjust this file to your environment.
 
 ## vpcnetwork&#46;tf
 This file contains the google provider (including credentials definition) and the Virtual Private Cloud definitions.
